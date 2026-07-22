@@ -1,0 +1,27 @@
+name: Build Android Executable
+
+on:
+  push:
+    branches: [ main, master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Android NDK
+      uses: nmdha/setup-android-ndk@v1
+      with:
+        ndk-version: r25b
+
+    - name: Compile C++ for Android
+      run: |
+        $ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android30-clang++ -O2 main.cpp -o elevator_app
+
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: Hyundai-Elevator-Executable
+        path: elevator_app
+        
