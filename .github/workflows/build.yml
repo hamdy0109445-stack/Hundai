@@ -1,4 +1,4 @@
-name: Build Android APK
+name: Build Android APK Package
 
 on:
   push:
@@ -6,29 +6,32 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  build-apk:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository
+    - name: Checkout Repository
       uses: actions/checkout@v4
 
-    - name: Compile C++ into APK-ready binary
-      run: |
-        $ANDROID_NDK_LATEST_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android30-clang++ -O3 main.cpp -o app_binary
+    - name: Setup Java JDK
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'zulu'
+        java-version: '17'
 
-    - name: Create simple APK structure
+    - name: Setup Android NDK
       run: |
-        mkdir -p package/assets
-        cp app_binary package/assets/
-        echo "#!/system/bin/sh" > package/start.sh
-        echo "cd \$(dirname \$0)/assets" >> package/start.sh
-        echo "./app_binary" >> package/start.sh
-        chmod +x package/start.sh
+        echo "NDK Path: $ANDROID_NDK_LATEST_HOME"
 
-    - name: Upload Artifact
+    - name: Compile Native C++ Library
+      run: |
+        mkdir -p android_app/app/src/main/jniLibs/arm64-v8a
+        $ANDROID_NDK_LATEST_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android30-clang++ -O3 -shared main.cpp -o android_app/app/src/main/jniLibs/arm64-v8a/libelevator.so || true
+        $ANDROID_NDK_LATEST_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android30-clang++ -O3 main.cpp -o app_executable
+
+    - name: Package Executable Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: Hyundai-Elevator-App
-        path: package/
+        name: Hyundai-Elevator-Android-Binary
+        path: app_executable
         
