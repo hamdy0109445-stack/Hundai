@@ -40,7 +40,7 @@ private:
     }
 
 public:
-    HyundaiColoredElevator(int floors) 
+    HyundaiColoredElevator(int floors)
         : totalFloors(floors), currentFloor(0), state(IDLE), opMode(MODE_NORMAL), activeFault(NONE), isDoorOpen(false) {
         hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
     }
@@ -51,7 +51,7 @@ public:
 
         setColor(COLOR_BLUE);
         cout << "=========================================================\n";
-        cout << "       [ HYUNDAI ELEVATOR SMART CONTROL PANEL ]          \n";
+        cout << "       [ HYUNDAI ELEVATOR SMART CONTROL PANEL hamdy ]          \n";
         cout << "=========================================================\n";
 
         // عرض الوضع (Normal / Inspection)
@@ -167,7 +167,7 @@ public:
 
         if (up && currentFloor < totalFloors - 1) currentFloor++;
         else if (!up && currentFloor > 0) currentFloor--;
-        
+
         renderPanel();
     }
 
@@ -185,7 +185,7 @@ public:
         string arrowSymbol = goingUp ? "^^^" : "vvv";
 
         // وقت تحرك الدور: ثانية واحدة مع سهم متوهج
-        for (int sec = 1; sec <= 1; ++sec) {
+        for (int sec = 1; sec <= 5; ++sec) {
             renderPanel(sec, arrowSymbol);
             this_thread::sleep_for(chrono::seconds(1));
         }
@@ -224,7 +224,7 @@ int main() {
     SetConsoleOutputCP(CP_UTF8);
     SetConsoleCP(CP_UTF8);
 
-    HyundaiColoredElevator elevator(6); // 6 أدوار (0 لـ 5)
+    HyundaiColoredElevator elevator(25); // 6 أدوار (0 لـ 5)
     int choice = 0;
 
     while (true) {
@@ -244,10 +244,10 @@ int main() {
 
         if (choice == 1) {
             int target;
-            cout << " Enter target floor (0 to 5): ";
+            cout << " Enter target floor (0 to 24): ";
             cin >> target;
             elevator.callFloor(target);
-        } 
+        }
         else if (choice == 2) elevator.toggleMode();
         else if (choice == 3) elevator.inspectionMove(true);
         else if (choice == 4) elevator.inspectionMove(false);
