@@ -13,14 +13,9 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Set up Android NDK
-      uses: nStandard/setup-ndk@v1.2.0
-      with:
-        ndk-version: r25c
-
     - name: Compile C++ for Android (aarch64)
       run: |
-        $ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android30-clang++ -O3 main.cpp -o HyundaiElevator
+        $ANDROID_NDK_LATEST_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android30-clang++ -O3 main.cpp -o HyundaiElevator
 
     - name: Upload Executable Artifact
       uses: actions/upload-artifact@v4
