@@ -7,7 +7,6 @@
 
 using namespace std;
 
-// أكواد الألوان القياسية (ANSI Colors) الشغالة على أندرويد ولينكس وباقي الأنظمة
 #define COLOR_RESET   "\033[0m"
 #define COLOR_BLUE    "\033[1;36m"
 #define COLOR_GREEN   "\033[1;32m"
@@ -40,7 +39,6 @@ public:
     HyundaiColoredElevator(int floors)
         : totalFloors(floors), currentFloor(0), state(IDLE), opMode(MODE_NORMAL), activeFault(NONE), isDoorOpen(false) {}
 
-    // رسم اللوحة بتنسيق وألوان ممتازة
     void renderPanel(int stepTime = 0, string arrowState = "   ") {
         clearScreen();
 
@@ -48,7 +46,6 @@ public:
         cout << "       [ HYUNDAI ELEVATOR SMART CONTROL PANEL hamdy ]          \n";
         cout << "=========================================================\n" << COLOR_RESET;
 
-        // عرض الوضع (Normal / Inspection)
         cout << COLOR_WHITE << "  MODE   : ";
         if (opMode == MODE_NORMAL) {
             cout << COLOR_GREEN << "[ NORMAL ]\n" << COLOR_RESET;
@@ -56,7 +53,6 @@ public:
             cout << COLOR_YELLOW << "[ INSPECTION (MAINTENANCE) ]\n" << COLOR_RESET;
         }
 
-        // عرض حالة الباب
         cout << COLOR_WHITE << "  DOOR   : ";
         if (isDoorOpen) {
             cout << COLOR_YELLOW << "< OPEN >\n" << COLOR_RESET;
@@ -64,7 +60,6 @@ public:
             cout << COLOR_GREEN << "] CLOSED [\n" << COLOR_RESET;
         }
 
-        // عرض الأعطال
         cout << COLOR_WHITE << "  STATUS : ";
         if (activeFault != NONE) {
             cout << COLOR_RED;
@@ -77,7 +72,6 @@ public:
 
         cout << COLOR_BLUE << "---------------------------------------------------------\n" << COLOR_RESET;
 
-        // رسم بئر المصعد والأدوار
         for (int f = totalFloors - 1; f >= 0; --f) {
             cout << COLOR_WHITE << "  [Floor " << (f < 10 ? "0" : "") << f << "]  ";
 
@@ -148,7 +142,6 @@ public:
         renderPanel();
     }
 
-    // زمن الحركة (محاكاة سريعة ثانية واحدة لكل دور)
     void moveOneFloor(int targetFloor) {
         if (isDoorOpen) {
             activeFault = E02_DOOR_OPEN;
@@ -161,7 +154,6 @@ public:
         state = goingUp ? MOVING_UP : MOVING_DOWN;
         string arrowSymbol = goingUp ? "^^^" : "vvv";
 
-        // وقت تحرك الدور: 5 ثوانٍ مع سهم متوهج
         for (int sec = 1; sec <= 5; ++sec) {
             renderPanel(sec, arrowSymbol);
             this_thread::sleep_for(chrono::seconds(1));
@@ -187,17 +179,16 @@ public:
             moveOneFloor(currentFloor + step);
         }
 
-        // فتح الباب لمدة 5 ثوانٍ كاملة عند الوصول
         if (state != FAULT_STOP) {
             pressOpenDoor();
-            this_thread::sleep_for(chrono::seconds(5)); // تأخير 5 ثوانٍ
+            this_thread::sleep_for(chrono::seconds(5));
             pressCloseDoor();
         }
     }
 };
 
 int main() {
-    HyundaiColoredElevator elevator(25); // 25 دور (0 لـ 24)
+    HyundaiColoredElevator elevator(25);
     int choice = 0;
 
     while (true) {
