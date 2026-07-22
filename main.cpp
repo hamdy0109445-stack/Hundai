@@ -4,17 +4,16 @@
 #include <thread>
 #include <chrono>
 #include <cstdlib>
-#include <windows.h> // مكتبة التحكم بالألوان وشاشة الويندوز
 
 using namespace std;
 
-// أكواد الألوان في شاشة الأوامر (Windows Console Colors)
-#define COLOR_RESET   7
-#define COLOR_BLUE    11
-#define COLOR_GREEN   10
-#define COLOR_YELLOW  14
-#define COLOR_RED     12
-#define COLOR_WHITE   15
+// أكواد الألوان القياسية (ANSI Colors) الشغالة على أندرويد ولينكس وباقي الأنظمة
+#define COLOR_RESET   "\033[0m"
+#define COLOR_BLUE    "\033[1;36m"
+#define COLOR_GREEN   "\033[1;32m"
+#define COLOR_YELLOW  "\033[1;33m"
+#define COLOR_RED     "\033[1;31m"
+#define COLOR_WHITE   "\033[1;37m"
 
 enum ElevatorState { IDLE, MOVING_UP, MOVING_DOWN, DOOR_OPEN, FAULT_STOP };
 enum OperationMode { MODE_NORMAL, MODE_INSPECTION };
@@ -28,97 +27,77 @@ private:
     OperationMode opMode;
     FaultCode activeFault;
     bool isDoorOpen;
-    HANDLE hConsole;
-
-    // دالة لتغيير لون النص
-    void setColor(int color) {
-        SetConsoleTextAttribute(hConsole, color);
-    }
 
     void clearScreen() {
-        system("cls");
+        #ifdef _WIN32
+            system("cls");
+        #else
+            system("clear");
+        #endif
     }
 
 public:
     HyundaiColoredElevator(int floors)
-        : totalFloors(floors), currentFloor(0), state(IDLE), opMode(MODE_NORMAL), activeFault(NONE), isDoorOpen(false) {
-        hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-    }
+        : totalFloors(floors), currentFloor(0), state(IDLE), opMode(MODE_NORMAL), activeFault(NONE), isDoorOpen(false) {}
 
     // رسم اللوحة بتنسيق وألوان ممتازة
     void renderPanel(int stepTime = 0, string arrowState = "   ") {
         clearScreen();
 
-        setColor(COLOR_BLUE);
-        cout << "=========================================================\n";
+        cout << COLOR_BLUE << "=========================================================\n";
         cout << "       [ HYUNDAI ELEVATOR SMART CONTROL PANEL hamdy ]          \n";
-        cout << "=========================================================\n";
+        cout << "=========================================================\n" << COLOR_RESET;
 
         // عرض الوضع (Normal / Inspection)
-        setColor(COLOR_WHITE);
-        cout << "  MODE   : ";
+        cout << COLOR_WHITE << "  MODE   : ";
         if (opMode == MODE_NORMAL) {
-            setColor(COLOR_GREEN);
-            cout << "[ NORMAL ]\n";
+            cout << COLOR_GREEN << "[ NORMAL ]\n" << COLOR_RESET;
         } else {
-            setColor(COLOR_YELLOW);
-            cout << "[ INSPECTION (MAINTENANCE) ]\n";
+            cout << COLOR_YELLOW << "[ INSPECTION (MAINTENANCE) ]\n" << COLOR_RESET;
         }
 
         // عرض حالة الباب
-        setColor(COLOR_WHITE);
-        cout << "  DOOR   : ";
+        cout << COLOR_WHITE << "  DOOR   : ";
         if (isDoorOpen) {
-            setColor(COLOR_YELLOW);
-            cout << "< OPEN >\n";
+            cout << COLOR_YELLOW << "< OPEN >\n" << COLOR_RESET;
         } else {
-            setColor(COLOR_GREEN);
-            cout << "] CLOSED [\n";
+            cout << COLOR_GREEN << "] CLOSED [\n" << COLOR_RESET;
         }
 
         // عرض الأعطال
-        setColor(COLOR_WHITE);
-        cout << "  STATUS : ";
+        cout << COLOR_WHITE << "  STATUS : ";
         if (activeFault != NONE) {
-            setColor(COLOR_RED);
+            cout << COLOR_RED;
             if (activeFault == E02_DOOR_OPEN) cout << "FAULT E02 - DOOR IS OPEN WHILE MOVING!\n";
             else if (activeFault == E05_INSPECTION_REJECT) cout << "FAULT E05 - REJECTED! INSPECTION MODE ACTIVE.\n";
+            cout << COLOR_RESET;
         } else {
-            setColor(COLOR_GREEN);
-            cout << "ALL SYSTEMS OK\n";
+            cout << COLOR_GREEN << "ALL SYSTEMS OK\n" << COLOR_RESET;
         }
 
-        setColor(COLOR_BLUE);
-        cout << "---------------------------------------------------------\n";
+        cout << COLOR_BLUE << "---------------------------------------------------------\n" << COLOR_RESET;
 
         // رسم بئر المصعد والأدوار
         for (int f = totalFloors - 1; f >= 0; --f) {
-            setColor(COLOR_WHITE);
-            cout << "  [Floor " << f << "]  ";
+            cout << COLOR_WHITE << "  [Floor " << (f < 10 ? "0" : "") << f << "]  ";
 
             if (f == currentFloor) {
                 if (isDoorOpen) {
-                    setColor(COLOR_YELLOW);
-                    cout << "|  <-- [ Elevator Car ] -->  |";
+                    cout << COLOR_YELLOW << "|  <-- [ Elevator Car ] -->  |" << COLOR_RESET;
                 } else {
-                    setColor(COLOR_GREEN);
-                    cout << "|  [|  Elevator Car  |]  |";
+                    cout << COLOR_GREEN << "|  [|  Elevator Car  |]  |" << COLOR_RESET;
                 }
 
                 if (state == MOVING_UP || state == MOVING_DOWN) {
-                    setColor(COLOR_YELLOW);
-                    cout << "  <<< " << arrowState << " [" << stepTime << "s] >>>";
+                    cout << COLOR_YELLOW << "  <<< " << arrowState << " [" << stepTime << "s] >>>" << COLOR_RESET;
                 }
             } else {
-                setColor(7);
-                cout << "|        |         |     |";
+                cout << COLOR_RESET << "|        |         |     |";
             }
             cout << "\n";
-            setColor(COLOR_BLUE);
-            cout << "          +-----------------------+\n";
+            cout << COLOR_BLUE << "          +-----------------------+\n" << COLOR_RESET;
         }
-        cout << "=========================================================\n";
-        setColor(COLOR_WHITE);
+        cout << COLOR_BLUE << "=========================================================\n" << COLOR_RESET;
     }
 
     void toggleMode() {
@@ -152,9 +131,7 @@ public:
 
     void inspectionMove(bool up) {
         if (opMode != MODE_INSPECTION) {
-            setColor(COLOR_RED);
-            cout << "\n[ERROR]: Switch to INSPECTION mode first!\n";
-            setColor(COLOR_WHITE);
+            cout << COLOR_RED << "\n[ERROR]: Switch to INSPECTION mode first!\n" << COLOR_RESET;
             this_thread::sleep_for(chrono::seconds(2));
             return;
         }
@@ -184,7 +161,7 @@ public:
         state = goingUp ? MOVING_UP : MOVING_DOWN;
         string arrowSymbol = goingUp ? "^^^" : "vvv";
 
-        // وقت تحرك الدور: ثانية واحدة مع سهم متوهج
+        // وقت تحرك الدور: 5 ثوانٍ مع سهم متوهج
         for (int sec = 1; sec <= 5; ++sec) {
             renderPanel(sec, arrowSymbol);
             this_thread::sleep_for(chrono::seconds(1));
@@ -213,18 +190,14 @@ public:
         // فتح الباب لمدة 5 ثوانٍ كاملة عند الوصول
         if (state != FAULT_STOP) {
             pressOpenDoor();
-            this_thread::sleep_for(chrono::seconds(5)); // <--- تأخير 5 ثوانٍ هنا
+            this_thread::sleep_for(chrono::seconds(5)); // تأخير 5 ثوانٍ
             pressCloseDoor();
         }
     }
 };
 
 int main() {
-    // ضبط الترميز للويندوز
-    SetConsoleOutputCP(CP_UTF8);
-    SetConsoleCP(CP_UTF8);
-
-    HyundaiColoredElevator elevator(25); // 6 أدوار (0 لـ 5)
+    HyundaiColoredElevator elevator(25); // 25 دور (0 لـ 24)
     int choice = 0;
 
     while (true) {
